@@ -1,0 +1,11 @@
+name: mlflow_lifecycle_pipeline
+python_env: python_env.yaml
+entry_points:
+  ingest:
+    command: "python ml_src/ingest.py"
+  train:
+    parameters: # these values are useless unless you set your python file actually read them in
+      data_path: {type: str, default: "lmao"}
+      outer_split: {type: int, default: 5}
+      inner_split: {type: int, default: 3}
+    command: "python ml_src/train.py --data_path {data_path} --outer_split {outer_split} --inner_split {inner_split}"

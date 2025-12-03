@@ -46,10 +46,10 @@ def perform_nested_cv(pipeline, param_grid, X, y, outer_cv, inner_cv):
 
     return best_outer_score, best_params, best_model
 
-def train(data_path:str="useless", outer_split:int=5, inner_split:int=3):
-    # loading data could be in it's own function or parameterized to pull in from elsewhere
-    data_bc = load_breast_cancer()
-    X_bc, y_bc = pd.DataFrame(data_bc.data), pd.Series(data_bc.target) # Convert to pandas for easy indexing
+def train(data_path:str, outer_split:int=5, inner_split:int=3):
+    data_bc = pd.read_csv(data_path)
+    X_bc = data_bc.drop(columns=["target"])
+    y_bc = data_bc["target"]
 
     mlflow.set_experiment(os.getenv("DATA_5750_EXPERIMENT_NAME", default="give_me_a_name"))
     with mlflow.start_run(run_name="model_training"):
@@ -76,4 +76,6 @@ def train(data_path:str="useless", outer_split:int=5, inner_split:int=3):
             mlflow.log_param(param_name, param_value)
         print(f"Model trained, AUC={model_auc:.4f}")
 if __name__ == "__main__":
-    train()
+    train(
+        data_path=os.getenv("DATA_5750_INGEST_DATA", default="data/bc_data.csv")
+    )
