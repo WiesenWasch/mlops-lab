@@ -14,6 +14,10 @@ env:
 jobs:
   test-train:
     runs-on: ubuntu-latest
+    env:
+      DATA_5750_EXPERIMENT_NAME: pipeline_experiment
+      MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+      DATA_5750_INGEST_DATA: data/bc_data.csv 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
