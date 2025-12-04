@@ -1,9 +1,11 @@
 # docker build . -t mlops1 --no-cache
-# need to run with no-cache so the sqlite db gets generated anew each time
+# need to run with no-cache so the sqlite db gets generated anew each time when doing local development
 
 # running with high vulns as i am too lazy to build a non-slim image with mlflow reqs of git and bash
 FROM python:3.12.12
 
+# the following enviroment variables are needed to run this applicaiton
+# MLFLOW_TRACKING_URI is needed so the sqlite backend is used instead of the mlruns folder
 ENV MLFLOW_TRACKING_URI="sqlite:///mlflow.db"
 ENV DATA_5750_EXPERIMENT_NAME="my_cool_model"
 ENV DATA_5750_INGEST_URI=

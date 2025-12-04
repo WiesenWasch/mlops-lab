@@ -2,3 +2,4 @@ fastapi==0.123.5
 mlflow==3.6.0
 pandas==2.3.2
 scikit-learn==1.7.2
+shap==0.50.0
