@@ -1,4 +1,5 @@
 import os
+import logging
 import mlflow
 import pandas as pd
 import numpy as np
@@ -9,6 +10,9 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
+
+LOGGER = logging.getLogger("mlflow")
+LOGGER.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 def perform_nested_cv(pipeline, param_grid, X, y, outer_cv, inner_cv):
     """Performs nested cross-validation."""
@@ -74,7 +78,9 @@ def train(data_path:str, outer_split:int=5, inner_split:int=3):
         mlflow.sklearn.log_model(best_model, name="model", input_example=X_bc)
         for param_name, param_value in chosen_params.items():
             mlflow.log_param(param_name, param_value)
-        print(f"Model trained, AUC={model_auc:.4f}")
+        LOGGER.info(f"Model trained, AUC={model_auc:.4f}")
+        run = mlflow.active_run()
+        LOGGER.info(f"Active run_id: {run.info.run_id}")  
 if __name__ == "__main__":
     train(
         data_path=os.getenv("DATA_5750_INGEST_DATA", default="data/bc_data.csv")

@@ -1,10 +1,6 @@
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
-import mlflow.pyfunc
-import pandas as pd
-
-app = FastAPI(title="CancerClassificationAPI")
-MODEL = None
+import mlflow
 
 class Features(BaseModel):
     data: list[dict]
@@ -18,37 +14,22 @@ class MyModel:
 
 MODEL = MyModel()
 
+app = FastAPI(title="CancerClassificationAPI")
+
 @app.get("/health")
 def health():
     return {"status": "healthy"}
 
 @app.post("/predict", status_code=200)
-def predict(features: Features, response: Response):
-    print(MODEL)
-    if MODEL.model is not None:
-        print(features.data)
-        df = pd.DataFrame(features.data)
-        print(df)
-        preds = MODEL.model.predict(features.data)
-        print(preds)
-        return {"predictions": preds.tolist()}
-    response.status_code = status.HTTP_428_PRECONDITION_REQUIRED
-    return "NO MODEL LOADED"
+def predict(features: Features, _response: Response):
+    if MODEL.model is None:
+        top_model = mlflow.search_logged_models(
+            experiment_ids=["1"],
+            max_results=1,
+        )
+        model_id = top_model['model_id'].iloc[0]
+        MODEL.model = mlflow.pyfunc.load_model(f"models:/{model_id}")
 
-@app.post("/set_model", status_code=200)
-def set_model(run_config:RunConfig, response: Response):
-    """
-    loads the model associate with the given Run ID.
-    Returns the Run ID if successful
-    """
-    model_uri = f"mlruns/1/models/{run_config.run_id}/artifacts"
-    try:
-        MODEL.model = mlflow.pyfunc.load_model(model_uri)
-        response.status_code = status.HTTP_201_CREATED
-        return model_uri
-    except Exception as err:
-        print(err)
-        MODEL.model=None
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return f"Unable to load model for Run {run_config.run_id}"
-
+    # df = pd.DataFrame(features.data) # features need to be ordered but this is an OPs not dev project
+    preds = MODEL.model.predict(features.data)
+    return {"predictions": preds.tolist()}
